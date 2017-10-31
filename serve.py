@@ -138,6 +138,10 @@ class TranscriptionsController(Resource):
     def render_POST(self, req):
         uid = self.transcriber.next_id()
 
+        if 'event_id' in req.args:
+            uid = req.args['event_id'][0]
+
+
         tran = req.args.get('transcript', [''])[0]
         audio = req.args['audio'][0]
 
@@ -155,6 +159,9 @@ class TranscriptionsController(Resource):
         # when we redirect the user we are sure that there's a place
         # for them to go.
         outdir = os.path.join(self.transcriber.data_dir, 'transcriptions', uid)
+        if os.path.exists(outdir):
+            shutil.rmtree(outdir)
+
         os.makedirs(outdir)
 
         # Copy over the HTML
@@ -212,7 +219,7 @@ class TranscriptionZipper(Resource):
         else:
             return Resource.getChild(self, path, req)
 
-def serve(port=8765, interface='0.0.0.0', installSignalHandlers=0, nthreads=4, ntranscriptionthreads=2, data_dir=get_datadir('webdata')):
+def serve(port=8765, interface='0.0.0.0', installSignalHandlers=0, nthreads=4, ntranscriptionthreads=2, data_dir=get_datadir('/var/www/ec_web/shared/backup/gentle/webdata')):
     logging.info("SERVE %d, %s, %d", port, interface, installSignalHandlers)
 
     if not os.path.exists(data_dir):
